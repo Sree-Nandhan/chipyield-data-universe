@@ -1,0 +1,103 @@
+version: 2
+
+models:
+  - name: stg_secom__readings
+    description: Silver-layer staging for SECOM sensor readings with sentinel nullification.
+    columns:
+      - name: wafer_id
+        description: Unique wafer identifier from source file row order.
+        tests:
+          - not_null
+      - name: sensor_id
+        description: Sensor channel number (1-591).
+        tests:
+          - not_null
+      - name: reading_value
+        description: Cleaned sensor reading; source sentinel -200 converted to null.
+
+  - name: stg_secom__labels
+    description: Silver-layer staging for wafer pass/fail labels and parsed timestamps.
+    columns:
+      - name: wafer_id
+        description: Unique wafer identifier.
+        tests:
+          - unique
+          - not_null
+      - name: yield_status
+        description: Human-readable yield outcome (pass/fail).
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['pass', 'fail']
+      - name: is_fail
+        description: Binary failure indicator (1 fail, 0 pass) for ML downstream.
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [0, 1]
+                quote: false
+      - name: tested_at
+        description: Parsed test timestamp.
+        tests:
+          - not_null
+
+  - name: int_secom__sensor_quality
+    description: Sensor-level quality metrics used to select ML feature columns.
+    columns:
+      - name: sensor_id
+        tests:
+          - unique
+          - not_null
+      - name: null_pct
+        description: Percentage of missing readings for the sensor across all wafers.
+
+  - name: int_secom__wafer_features
+    description: >
+      Intermediate wide feature table with top 50 variance-ranked sensors,
+      median-imputed for missing values. Grain one row per wafer.
+    columns:
+      - name: wafer_id
+        tests:
+          - unique
+          - not_null
+
+  - name: mart_yield_analytics
+    description: Gold-layer daily yield analytics for business reporting.
+    columns:
+      - name: test_date
+        tests:
+          - unique
+          - not_null
+      - name: yield_rate_pct
+        description: Daily pass rate percentage.
+
+  - name: mart_yield_summary
+    description: Gold-layer overall yield KPIs for executive dashboards.
+    columns:
+      - name: total_wafers
+        tests:
+          - not_null
+      - name: overall_yield_rate_pct
+        description: Overall pass rate across the dataset.
+
+  - name: mart_ml_features
+    description: >
+      Gold-layer AI-ready feature dataset for ML training and inference.
+      Grain one row per wafer with 50 engineered sensor features and yield label.
+      Consumed by scripts/train_classifier.py — do not train on raw bronze data.
+    columns:
+      - name: wafer_id
+        description: Primary key; one row per wafer test event.
+        tests:
+          - unique
+          - not_null
+      - name: is_fail
+        description: Model target; 1 indicates failed wafer test.
+        tests:
+          - not_null
+      - name: feature_001
+        description: Top variance-ranked imputed sensor feature (rank 1).
+      - name: feature_set_built_at
+        description: Timestamp when feature mart was last built by dbt.

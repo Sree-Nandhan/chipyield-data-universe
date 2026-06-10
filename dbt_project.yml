@@ -1,0 +1,33 @@
+name: chipyield
+version: 1.0.0
+config-version: 2
+
+profile: chipyield
+
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["data/seeds"]
+macro-paths: ["macros"]
+
+target-path: target
+clean-targets:
+  - target
+  - dbt_packages
+
+models:
+  chipyield:
+    staging:
+      +materialized: view
+      +schema: staging
+    intermediate:
+      +materialized: view
+      +schema: intermediate
+    marts:
+      +materialized: table
+      +schema: marts
+
+vars:
+  secom_sentinel: -200
+  max_sensor_null_pct: 0.35
+  top_sensor_count: 50

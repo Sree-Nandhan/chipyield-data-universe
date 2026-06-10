@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# dbt
+target/
+dbt_packages/
+logs/
+
+# DuckDB
+*.duckdb
+*.duckdb.wal
+
+# ML artifacts (metrics json is small — keep; model is rebuilt by script)
+artifacts/*.joblib
+
+# dbt local user config
+.user.yml
+
+# RAG vector store (rebuilt by script)
+rag_store/
+
+# OS
+.DS_Store
+
+# Large raw data — keep in repo for reproducibility (SECOM ~ few MB)
+# data/bronze/

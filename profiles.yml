@@ -1,0 +1,8 @@
+chipyield:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: "{{ env_var('CHIPYIELD_DB_PATH', 'chipyield.duckdb') }}"
+      schema: main
+      threads: 4

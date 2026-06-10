@@ -1,0 +1,31 @@
+version: 2
+
+sources:
+  - name: bronze
+    description: >
+      Raw SECOM semiconductor manufacturing sensor data ingested from UCI ML Repository.
+      Bronze layer preserves source fidelity for replay and audit.
+    schema: bronze
+    tables:
+      - name: secom_sensor_readings_long
+        description: Unpivoted wafer sensor readings (one row per wafer-sensor pair).
+        columns:
+          - name: wafer_id
+            description: Surrogate wafer identifier (1-indexed row from source file).
+          - name: sensor_id
+            description: Sensor channel identifier (1-591).
+          - name: reading_value
+            description: Raw sensor measurement; -200 indicates missing in source.
+
+      - name: secom_labels_raw
+        description: Pass/fail labels and test timestamps per wafer.
+        columns:
+          - name: wafer_id
+            description: Wafer identifier joining to sensor readings.
+          - name: pass_fail_raw
+            description: Source label (-1 fail, 1 pass).
+          - name: timestamp_str
+            description: Test timestamp string from source file.
+
+      - name: secom_sensor_readings_wide
+        description: Wide-format raw readings preserved for lineage (591 sensor columns).
